@@ -14,7 +14,7 @@ open Interpreter
 
     let actual = eval cst []
     
-    Assert.Equal(expected, actual)
+    Assert.Equal(Int(expected), actual)
 
   [<Theory>]
   [<AutoData>]
@@ -35,7 +35,7 @@ open Interpreter
 
     let actual = eval lExpr []
 
-    Assert.Equal(i1+i2, actual)
+    Assert.Equal(Int(i1+i2), actual)
 
   [<Theory>]
   [<InlineAutoData(1,  "+", 2,   3)>]
@@ -51,6 +51,6 @@ open Interpreter
 
     let actual = eval op []
 
-    Assert.Equal(expected, actual)
+    Assert.Equal(Int(expected), actual)
     
 
