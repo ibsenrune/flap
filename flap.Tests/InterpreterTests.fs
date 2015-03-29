@@ -14,13 +14,13 @@ open Interpreter
 
     let actual = eval cst []
     
-    Assert.Equal(Int(expected), actual)
+    Assert.Equal(expected, actual)
 
   [<Theory>]
   [<AutoData>]
   let VarEvaluatedCorrectly name expected = 
     let var = Var(name)
-    let env = [(name,expected)]
+    let env = [(name,Int(expected))]
 
     let actual = eval var env
     
@@ -35,7 +35,7 @@ open Interpreter
 
     let actual = eval lExpr []
 
-    Assert.Equal(Int(i1+i2), actual)
+    Assert.Equal(i1+i2, actual)
 
   [<Theory>]
   [<InlineAutoData(1,  "+", 2,   3)>]
@@ -51,6 +51,6 @@ open Interpreter
 
     let actual = eval op []
 
-    Assert.Equal(Int(expected), actual)
+    Assert.Equal(expected, actual)
     
 
