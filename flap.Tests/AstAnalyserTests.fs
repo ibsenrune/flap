@@ -117,4 +117,28 @@
 
     Assert.Equal(LetFun(fName, pName, fBody, subExpr), actual)
 
+  [<Theory>]
+  [<InlineAutoData("+")>]
+  [<InlineAutoData("-")>]
+  [<InlineAutoData("*")>]
+  [<InlineAutoData("/")>]
+  let SubstituteIntoOpSubstitutesIntoOperands op substitutionVar subExpr =
+    let expr = Op(Var(substitutionVar), op, Var(substitutionVar))
+    let env = (substitutionVar, subExpr)::[]
+
+    let actual = substitute env expr
+
+    Assert.Equal(Op(subExpr, op, subExpr), actual)
+
+  [<Theory>]
+  [<AutoData>]
+  let SubstituteIntoCallSubstitutesIntoArgumentExpression 
+    (fName : string) (argVar : string) (subExpr : Expr) =
+    let call = Call(fName, Var(argVar))
+    let env = (argVar, subExpr)::[]
+
+    let actual = substitute env call
+
+    Assert.Equal(Call(fName, subExpr), actual)
+
 

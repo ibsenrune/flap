@@ -17,5 +17,9 @@
       let substitutedFBody = substitute fBodyEnv fBody
       let substitutedLBody = substitute lBodyEnv lBody
       LetFun(fName, pName, substitutedFBody, substitutedLBody)
+    | Op(e1, op, e2) -> Op(substitute env e1, op, substitute env e2)
+    | Call(f, arg) -> 
+      let substitutedArg = substitute env arg
+      Call(f, substitutedArg)
       
 
