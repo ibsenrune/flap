@@ -26,6 +26,17 @@ open Interpreter
     
     Assert.Equal(expected, actual)
 
+  
+  [<Theory>]
+  [<AutoData>]
+  let VarThrowsIfVariableRefersToClosure fName pName fBody =
+    let closure = Closure(fName, pName, fBody, [])
+    let env = (fName, closure)::[]
+    let varExpr = Var(fName)
+
+    Assert.Throws<System.Exception>(fun () -> eval varExpr env |> ignore)
+
+
   [<Theory>]
   [<AutoData>]
   let LetEvaluatedCorrectly name i1 i2 =
@@ -36,6 +47,7 @@ open Interpreter
     let actual = eval lExpr []
 
     Assert.Equal(i1+i2, actual)
+
 
   [<Theory>]
   [<InlineAutoData(1,  "+", 2,   3)>]
@@ -52,5 +64,14 @@ open Interpreter
     let actual = eval op []
 
     Assert.Equal(expected, actual)
-    
+
+
+  [<Theory>]
+  [<AutoData>]
+  let CanEvaluateLetFunWithFunctionCall fName pName fBody i =
+    let letFun = LetFun(fName, pName, fBody, CstI(i))
+
+    let actual = eval letFun []
+
+    Assert.Equal(i, actual)
 

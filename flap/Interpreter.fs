@@ -19,6 +19,10 @@
       let vlhs = eval elhs env
       let env' = (s,Int(vlhs))::env
       eval erhs env'
+    | LetFun(f, p, fBody, iBody) ->
+      let closure = Closure(f, p, fBody, env)
+      let env' = (f, closure)::env
+      eval iBody env'
     | Op(lhs, op, rhs) -> 
       let lhsv,rhsv = eval lhs env, eval rhs env
       match op with
