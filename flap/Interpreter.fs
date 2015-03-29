@@ -1,6 +1,12 @@
 ﻿module Interpreter
   open Ast
 
+  type 't environment = (string * 't) list
+
+  type value = 
+  | Int of int
+  | Closure of string * string * Expr * value environment
+
   let rec eval e (env : (string*int) list) =
     let lookup s = List.find (fun (x,_) -> x = s) env |> snd
     match e with
