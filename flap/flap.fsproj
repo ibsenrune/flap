@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Ast.fs" />
+    <Compile Include="AstAnalyser.fs" />
     <Compile Include="Interpreter.fs" />
   </ItemGroup>
   <PropertyGroup>
