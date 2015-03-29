@@ -75,3 +75,15 @@ open Interpreter
 
     Assert.Equal(i, actual)
 
+  [<Theory>]
+  [<AutoData>]
+  let CallEvaluatedCorrectly () =
+    let closure = Closure("f", "x", Op(Var("x"), "*", CstI(2)), [])
+    let env = ("f", closure)::[]
+    let call = Call("f", CstI(3))
+
+    let actual = eval call env
+
+    Assert.Equal(3*2, actual)
+
+
