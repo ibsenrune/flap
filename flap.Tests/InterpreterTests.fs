@@ -27,6 +27,17 @@ open Interpreter
     Assert.Equal(expected, actual)
 
   [<Theory>]
+  [<AutoData>]
+  let LetEvaluatedCorrectly name i1 i2 =
+    let lBody = CstI(i1)
+    let env = [(name,i1)]
+    let lExpr = Let(name,lBody,Op(Var(name),"+",CstI(i2)))
+
+    let actual = eval lExpr []
+
+    Assert.Equal(i1+i2, actual)
+
+  [<Theory>]
   [<InlineAutoData(1,  "+", 2,   3)>]
   [<InlineAutoData(10, "+", 15, 25)>]
   [<InlineAutoData(10, "-", 15, -5)>]

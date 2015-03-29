@@ -6,6 +6,10 @@
     match e with
     | CstI(i) -> i
     | Var(s) -> lookup s
+    | Let(s, elhs, erhs) -> 
+      let vlhs = eval elhs env
+      let env' = (s,vlhs)::env
+      eval erhs env'
     | Op(lhs, op, rhs) -> 
       let lhsv,rhsv = eval lhs env, eval rhs env
       match op with
