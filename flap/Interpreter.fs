@@ -1,7 +1,6 @@
 ﻿module Interpreter
   open Ast
-
-  type 't environment = (string * 't) list
+  open Symbols
 
   type value = 
   | Int of int
