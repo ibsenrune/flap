@@ -2,6 +2,32 @@
   open Ast
   open Symbols
 
+  let rec freeVariables expr =
+    match expr with
+    | CstI(_) -> []
+    | Var(id) -> id::[]
+    | Let(p, lExpr, lBody) ->
+        let freeVariablesInLExpr = freeVariables lExpr
+        let freeVariablesInLBody = freeVariables lBody
+        freeVariablesInLExpr @ (List.filter (fun x -> x <> p) freeVariablesInLBody)
+    | LetFun(f, p, fBody, lBody) ->
+        let freeVariablesInFunctionBody = freeVariables fBody
+        let freeVariablesInLetBody = freeVariables lBody
+        (List.filter (fun x -> x <> p) freeVariablesInFunctionBody) @ freeVariablesInLetBody
+    | Op(operand1, op, operand2) ->
+        freeVariables operand1 @ freeVariables operand2
+    | Call(f, arg) -> freeVariables arg
+        
+        
+
+  let rec freeIn (symbol : string) exprIn =
+    match exprIn with
+    | CstI(_) -> false
+    | Var(v) -> symbol = v
+    | Let(p, lExpr, lBody) -> 
+        if(symbol = p) then false else freeIn symbol lExpr or freeIn symbol lBody
+    
+
   let rec substitute (env : Expr environment) exprIn = 
     match exprIn with
     | CstI(_) -> exprIn

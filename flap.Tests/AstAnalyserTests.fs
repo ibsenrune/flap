@@ -141,4 +141,200 @@
 
     Assert.Equal(Call(fName, subExpr), actual)
 
+  [<Theory>]
+  [<AutoData>]
+  let InConstNothingIsFree i =
+    let expr = CstI(i)
 
+    let actual = freeVariables expr
+
+    Assert.Equal([], actual)
+
+  [<Theory>]
+  [<AutoData>]
+  let InVarTheVarIsFree var =
+    let expr = Var(var)
+
+    let actual = freeVariables expr
+
+    Assert.Equal(var::[], actual)
+
+  [<Theory>]
+  [<AutoData>]
+  let InLetFreeVariablesInLetBodyAreFreeWhenNotBoundByLet p var i1 =
+    let letExpr = Let(p, CstI(i1), Var(var))
+
+    let actual = freeVariables letExpr
+
+    Assert.Equal(var::[], actual)
+
+  
+  [<Theory>]
+  [<AutoData>]
+  let InLetFreeVariablesInLetBodyAreNotFreeWhenBoundByLet var i1 =
+    let letExpr = Let(var, CstI(i1), Var(var))
+
+    let actual = freeVariables letExpr
+
+    Assert.Equal([], actual)
+
+  
+  [<Theory>]
+  [<AutoData>]
+  let InLetFreeVariablesInLetExprAreFree p var i1 =
+    let letExpr = Let(p, Var(var), CstI(i1))
+
+    let actual = freeVariables letExpr
+
+    Assert.Equal(var::[], actual)
+
+
+  [<Theory>]
+  [<AutoData>]
+  let InLetFreeVariablesInLetExprAreFreeEvenIfEqualToParameter var i1 =
+    let letExpr = Let(var, Var(var), CstI(i1))
+
+    let actual = freeVariables letExpr
+
+    Assert.Equal(var::[], actual)
+
+
+  [<Theory>]
+  [<AutoData>]
+  let InLetFunFreeVariablesInLetBodyAreFreeWhenNotBoundByLet f p var i1 =
+    let letFun = LetFun(f, p, CstI(i1), Var(var))
+
+    let actual = freeVariables letFun
+
+    Assert.Equal(var::[], actual)
+
+
+  [<Theory>]
+  [<AutoData>]
+  let InCallFreeVariablesAreFreeInArg f var =
+    let call = Call(f, Var(var))
+
+    let actual = freeVariables call
+
+    Assert.Equal(var::[], actual)
+  
+  [<Theory>]
+  [<AutoData>]
+  let InOpFreeVariablesAreUnionOfSubexpressionsFreeVariables var1 var2 =
+    let op = Op(Var(var1), "+", Var(var2))
+
+    let actual = freeVariables op
+
+    Assert.Equal(var1::var2::[], actual)
+
+  [<Theory>]
+  [<AutoData>]
+  let InLetFunFreeVariablesInLetBodyAreFreeEvenWhenBoundByLetFun f var i1 =
+    let letFun = LetFun(f, var, CstI(i1), Var(var))
+
+    let actual = freeVariables letFun
+
+    Assert.Equal(var::[], actual)
+
+  
+  [<Theory>]
+  [<AutoData>]
+  let InLetFunFreeVariablesInLetExprAreFreeWhenNotBoundByparameter f p var i1 =
+    let letFun = LetFun(f, p, Var(var), CstI(i1))
+
+    let actual = freeVariables letFun
+
+    Assert.NotEqual(p, var)
+    Assert.Equal(var::[], actual)
+
+  
+  [<Theory>]
+  [<AutoData>]
+  let InLetFunFreeVariablesInLetExprAreNotFreeWhenBoundByparameter f p var i1 =
+    let letFun = LetFun(f, var, Var(var), CstI(i1))
+
+    let actual = freeVariables letFun
+
+    Assert.NotEqual(p, var)
+    Assert.Equal([], actual)
+
+
+  [<Theory>]
+  [<AutoData>]
+  let InLetFunFreeVariablesAreFreeVariablesFromSubexpressions f p var1 var2 =
+    let letExpr = LetFun(f, p, Var(var1), Var(var2))
+
+    let actual = freeVariables letExpr
+
+    Assert.NotEqual(p, var1);
+    Assert.NotEqual(p, var2);
+    Assert.Equal(var1::var2::[], actual)
+
+
+
+
+  [<Theory>]
+  [<AutoData>]
+  let InLetFreeVariablesAreFreeInSubexpressoins p var1 var2 =
+    let letExpr = Let(p, Var(var1), Var(var2))
+
+    let actual = freeVariables letExpr
+
+    Assert.Equal(var1::var2::[], actual)
+
+
+  [<Theory>]
+  [<AutoData>]
+  let VarIsNotFreeInConst var i =
+    let cst = CstI(i)
+    
+    let isFree = freeIn var cst
+
+    Assert.False(isFree)
+
+  [<Theory>]
+  [<AutoData>]
+  let VarIsNotFreeInVarOfOtherName var otherVar = 
+    let varExpr = Var(otherVar)
+
+    let isFree = freeIn var varExpr
+
+    Assert.NotEqual(var, otherVar);
+    Assert.False(isFree)
+
+  [<Theory>]
+  [<AutoData>]
+  let VarIsFreeInVarOfSameName var =
+    let varExpr = Var(var)
+
+    let isFree = freeIn var varExpr
+
+    Assert.True(isFree)
+
+
+  [<Theory>]
+  [<AutoData>]
+  let VarIsFreeInLetIfNotBoundByParameterAndFreeInParameterExpression var p letBody =
+    let letExpr = Let(p, Var(var), letBody)
+
+    let isFree = freeIn var letExpr
+
+    Assert.True(isFree)
+
+  [<Theory>]
+  [<AutoData>]
+  let VarIsFreeInLetIfNotBoundByParameterAndFreeInLetBody var p subExpr =
+    let letExpr = Let(p, subExpr, Var(var))
+
+    let isFree = freeIn var letExpr
+
+    Assert.True(isFree)
+
+//  [<Theory>]
+//  [<AutoData>]
+//  let VarIsFreeInLetIfEqualToParameterButFreeInParameterExpression var letBody =
+//    let letExpr = Let(var, Var(var), letBody)
+//
+//    let isFree = freeIn var letExpr
+//
+//    Assert.True(isFree)
