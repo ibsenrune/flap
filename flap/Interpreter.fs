@@ -37,12 +37,18 @@
     | Op(lhs, op, rhs) -> 
       let lhsv,rhsv = eval lhs env, eval rhs env
       match lhsv, rhsv with
-      | (CstI(lhsi), CstI(rhsi)) -> 
+      | CstI(lhsi), CstI(rhsi) -> 
         match op with
         | "+" -> CstI(lhsi + rhsi)
         | "-" -> CstI(lhsi - rhsi)
         | "*" -> CstI(lhsi * rhsi)
         | "/" -> CstI(lhsi / rhsi)
+        | "=" -> CstB(lhsi = rhsi)
+        | _ -> failwith (sprintf "Operator %s cannot be applied to operands of type int" op)
+      | CstB(b1), CstB(b2) ->
+        match op with
+        | "=" -> CstB(b1 = b2)
+        | _ -> failwith (sprintf "Cannot apply operator %s to operands of type bool" op)
       | _ -> failwith (sprintf "Cannot apply operator %s to expressions" op)
 
     | If(cExpr, tExpr, fExpr) ->

@@ -52,10 +52,6 @@
   [<Theory>]
   [<InlineAutoData(1,  "+", 2,   3)>]
   [<InlineAutoData(10, "+", 15, 25)>]
-  [<InlineAutoData(10, "-", 15, -5)>]
-  [<InlineAutoData(2,  "-", 1,   1)>]
-  [<InlineAutoData(2,  "*", 1,   2)>]
-  [<InlineAutoData(20, "*", 3,  60)>]
   [<InlineAutoData(6,  "/", 2,   3)>]
   [<InlineAutoData(7,  "/", 2,   3)>]
   let AdditionEvaluatedCorrectly i1 opSymb i2 expected = 
@@ -65,6 +61,94 @@
 
     Assert.Equal(CstI(expected), actual)
 
+
+  [<Theory>]
+  [<InlineAutoData(10, "-", 15, -5)>]
+  [<InlineAutoData(2,  "-", 1,   1)>]
+  let SubtractionEvaluatedCorrectly i1 opSymb i2 expected = 
+    let op = Op(CstI(i1), opSymb, CstI(i2))
+
+    let actual = eval op []
+
+    Assert.Equal(CstI(expected), actual)
+
+
+  [<Theory>]
+  [<InlineAutoData(2,  "*", 1,   2)>]
+  [<InlineAutoData(20, "*", 3,  60)>]
+  let MultiplicationEvaluatedCorrectly i1 opSymb i2 expected = 
+    let op = Op(CstI(i1), opSymb, CstI(i2))
+
+    let actual = eval op []
+
+    Assert.Equal(CstI(expected), actual)  
+
+  [<Theory>]
+  [<InlineAutoData(6,  "/", 2,   3)>]
+  [<InlineAutoData(7,  "/", 2,   3)>]
+  let DivisionEvaluatedCorrectly i1 opSymb i2 expected = 
+    let op = Op(CstI(i1), opSymb, CstI(i2))
+
+    let actual = eval op []
+
+    Assert.Equal(CstI(expected), actual)
+
+
+  [<Theory>]
+  [<InlineAutoData("+")>]
+  [<InlineAutoData("-")>]
+  [<InlineAutoData("*")>]
+  [<InlineAutoData("/")>]
+  let ApplyingMathOperatorsToNonIntegersThrows opSymb b i = 
+    let env = []
+
+    Assert.Throws<System.Exception>(fun () -> 
+      (eval (Op(CstB(b), opSymb, CstI(i)))  env) |> ignore) |> ignore;
+
+    Assert.Throws<System.Exception>(fun () -> 
+      (eval (Op(CstI(i), opSymb, CstB(b)))  env) |> ignore) |> ignore;
+
+    Assert.Throws<System.Exception>(fun () -> 
+      (eval (Op(CstB(b), opSymb, CstB(b)))  env) |> ignore) |> ignore
+
+  [<Theory>]
+  [<InlineAutoData(-1, -1, true)>]
+  [<InlineAutoData(501, 501, true)>]
+  [<InlineAutoData(-1, 1, false)>]
+  [<InlineAutoData(1, -1, false)>]
+  [<InlineAutoData(39, 309, false)>]
+  let EqualityBetweenIntegersEvaluatedCorrectly i1 i2 expected =
+    let expr = Op(CstI(i1), "=", CstI(i2))
+
+    let actual = eval expr []
+
+    Assert.Equal(CstB(expected), actual)
+
+
+  [<Theory>]
+  [<InlineAutoData(true, true, true)>]
+  [<InlineAutoData(true, false, false)>]
+  [<InlineAutoData(false, true, false)>]
+  [<InlineAutoData(false, false, true)>]
+  let EqualityBetweenBooleansEvaluatedCorrectly b1 b2 expected =
+    let expr = Op(CstB(b1), "=", CstB(b2))
+
+    let actual = eval expr []
+
+    Assert.Equal(CstB(expected), actual)
+
+
+  [<Theory>]
+  [<AutoData>]
+  let EvaluatingEqualityBetweenNonCompatibleTypesThrows b i =
+    let env = []
+    
+    Assert.Throws<System.Exception>(fun () -> 
+      (eval (Op(CstB(b), "=", CstI(i)))  env) |> ignore) |> ignore;
+
+    Assert.Throws<System.Exception>(fun () -> 
+      (eval (Op(CstI(i), "=", CstB(b)))  env) |> ignore) |> ignore;
+   
 
   [<Theory>]
   [<AutoData>]
@@ -104,5 +188,6 @@
     let ifExpr = If(CstI(i), tExpr, fExpr)
 
     Assert.Throws<System.Exception>(fun () -> eval ifExpr [] |> ignore)
-    
+
+
 
