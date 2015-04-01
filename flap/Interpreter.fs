@@ -3,7 +3,7 @@
   open Symbols
 
   type value = 
-  | Int of int
+  | ExprValue of Ast.Expr * value environment
   | Closure of string * string * Expr * value environment
 
   let rec eval e (env : value environment) =
@@ -13,12 +13,11 @@
 
     | Var(s) -> 
         match lookup s with
-        | Int(i) -> i
+        | ExprValue(expr, env) -> eval expr env
         | _ -> failwith "Lookup returned unexpected value"
 
     | Let(s, elhs, erhs) -> 
-      let vlhs = eval elhs env
-      let env' = (s,Int(vlhs))::env
+      let env' = (s,ExprValue(elhs, env))::env
       eval erhs env'
 
     | LetFun(f, p, fBody, iBody) ->
@@ -32,7 +31,7 @@
         | Closure(f,p,fBody,fEnv) -> (f,p,fBody,fEnv)
         | _ -> failwith "Cannot call non-func value"
       let argValue = eval arg env
-      eval fBody ((p,Int(argValue))::fEnv)
+      eval fBody ((p,ExprValue(CstI(argValue), []))::fEnv)
 
     | Op(lhs, op, rhs) -> 
       let lhsv,rhsv = eval lhs env, eval rhs env

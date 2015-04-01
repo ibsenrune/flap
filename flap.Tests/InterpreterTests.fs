@@ -20,7 +20,7 @@ open Interpreter
   [<AutoData>]
   let VarEvaluatedCorrectly name expected = 
     let var = Var(name)
-    let env = [(name,Int(expected))]
+    let env = [(name,ExprValue(CstI(expected), []))]
 
     let actual = eval var env
     
