@@ -5,6 +5,7 @@
   let rec freeVariables expr =
     match expr with
     | CstI(_) -> []
+    | CstB(_) -> []
     | Var(id) -> id::[]
     | Let(p, lExpr, lBody) ->
         let freeVariablesInLExpr = freeVariables lExpr
@@ -26,6 +27,7 @@
   let rec substitute (uniqueVarGenerator : unit -> string) (env : Expr environment) exprIn = 
     match exprIn with
     | CstI(_) -> exprIn
+    | CstB(_) -> exprIn
     | Var(v) -> lookupOrSelf env v
     | Let(p, lExpr, lBody) -> 
       let substitutedLExpr = substitute uniqueVarGenerator env lExpr

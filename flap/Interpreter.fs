@@ -9,7 +9,8 @@
   let rec eval e (env : value environment) =
     let lookup s = List.find (fun (x,_) -> x = s) env |> snd
     match e with
-    | CstI(i) -> i
+    | CstI(i) -> e
+    | CstB(b) -> e
 
     | Var(s) -> 
         match lookup s with
@@ -31,12 +32,15 @@
         | Closure(f,p,fBody,fEnv) -> (f,p,fBody,fEnv)
         | _ -> failwith "Cannot call non-func value"
       let argValue = eval arg env
-      eval fBody ((p,ExprValue(CstI(argValue), []))::fEnv)
+      eval fBody ((p,ExprValue(argValue, []))::fEnv)
 
     | Op(lhs, op, rhs) -> 
       let lhsv,rhsv = eval lhs env, eval rhs env
-      match op with
-      | "+" -> lhsv + rhsv
-      | "-" -> lhsv - rhsv
-      | "*" -> lhsv * rhsv
-      | "/" -> lhsv / rhsv
+      match lhsv, rhsv with
+      | (CstI(lhsi), CstI(rhsi)) -> 
+        match op with
+        | "+" -> CstI(lhsi + rhsi)
+        | "-" -> CstI(lhsi - rhsi)
+        | "*" -> CstI(lhsi * rhsi)
+        | "/" -> CstI(lhsi / rhsi)
+      | _ -> failwith (sprintf "Cannot apply operator %s to expressions" op)

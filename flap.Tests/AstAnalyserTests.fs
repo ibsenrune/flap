@@ -12,9 +12,20 @@
 
   [<Theory>]
   [<AutoData>]
-  let SubstitutingIntoConstDoesNothing (p : string) (expr : Expr) i =
+  let SubstitutingIntoIntegerConstDoesNothing (p : string) (expr : Expr) i =
     let substitute = AstAnalyser.substitute (uniqueGenerator())
     let cst = CstI(i)
+    let env = [(p,expr)]
+
+    let actual = substitute env cst
+
+    Assert.Equal(cst, actual)
+
+  [<Theory>]
+  [<AutoData>]
+  let SubstitutingIntoBooleanConstDoesNothing (p : string) (expr : Expr) b =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
+    let cst = CstB(b)
     let env = [(p,expr)]
 
     let actual = substitute env cst
@@ -160,8 +171,17 @@
 
   [<Theory>]
   [<AutoData>]
-  let InConstNothingIsFree i =
+  let InIntegerConstNothingIsFree i =
     let expr = CstI(i)
+
+    let actual = freeVariables expr
+
+    Assert.Equal([], actual)
+
+  [<Theory>]
+  [<AutoData>]
+  let InBooleanConstNothingIsFree b =
+    let expr = CstB(b)
 
     let actual = freeVariables expr
 

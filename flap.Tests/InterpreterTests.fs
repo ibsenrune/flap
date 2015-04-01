@@ -14,7 +14,7 @@
 
     let actual = eval cst []
     
-    Assert.Equal(expected, actual)
+    Assert.Equal(cst, actual)
 
   [<Theory>]
   [<AutoData>]
@@ -24,7 +24,7 @@
 
     let actual = eval var env
     
-    Assert.Equal(expected, actual)
+    Assert.Equal(CstI(expected), actual)
 
   
   [<Theory>]
@@ -46,7 +46,7 @@
 
     let actual = eval lExpr []
 
-    Assert.Equal(i1+i2, actual)
+    Assert.Equal(CstI(i1+i2), actual)
 
 
   [<Theory>]
@@ -63,7 +63,7 @@
 
     let actual = eval op []
 
-    Assert.Equal(expected, actual)
+    Assert.Equal(CstI(expected), actual)
 
 
   [<Theory>]
@@ -73,7 +73,7 @@
 
     let actual = eval letFun []
 
-    Assert.Equal(i, actual)
+    Assert.Equal(CstI(i), actual)
 
   [<Theory>]
   [<AutoData>]
@@ -84,6 +84,6 @@
 
     let actual = eval call env
 
-    Assert.Equal(3*2, actual)
+    Assert.Equal(CstI(3*2), actual)
 
 
