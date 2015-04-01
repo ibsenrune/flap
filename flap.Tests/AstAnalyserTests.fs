@@ -171,6 +171,18 @@
 
   [<Theory>]
   [<AutoData>]
+  let SubstituteIntoIfSubstitutesIntoAllThreeExpressions subExpr var =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
+    let ifExpr = If(Var(var), Var(var), Var(var))
+    let env = (var, subExpr)::[]
+
+    let actual = substitute env ifExpr
+
+    Assert.Equal(If(subExpr, subExpr, subExpr), actual)
+
+
+  [<Theory>]
+  [<AutoData>]
   let InIntegerConstNothingIsFree i =
     let expr = CstI(i)
 
@@ -319,3 +331,13 @@
     let actual = freeVariables letExpr
 
     Assert.Equal(var1::var2::[], actual)
+
+
+  [<Theory>]
+  [<AutoData>]
+  let InIfTheFreeVariablesAreTheFreeVariablesFromTheThreeSubexpressions f1 f2 f3 =
+    let ifExpr = If(Var(f1), Var(f2), Var(f3))
+
+    let actual = freeVariables ifExpr
+
+    Assert.Equal(f1::f2::f3::[], actual)

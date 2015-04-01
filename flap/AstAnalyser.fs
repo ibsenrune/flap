@@ -18,6 +18,8 @@
     | Op(operand1, op, operand2) ->
         freeVariables operand1 @ freeVariables operand2
     | Call(f, arg) -> freeVariables arg
+    | If(bExpr, tExpr, fExpr) -> 
+        freeVariables bExpr @ freeVariables tExpr @ freeVariables fExpr
         
         
   let rec private freeIn (symbol : string) exprIn =
@@ -25,15 +27,16 @@
     
 
   let rec substitute (uniqueVarGenerator : unit -> string) (env : Expr environment) exprIn = 
+    let substituteInner = substitute uniqueVarGenerator
     match exprIn with
     | CstI(_) -> exprIn
     | CstB(_) -> exprIn
     | Var(v) -> lookupOrSelf env v
     | Let(p, lExpr, lBody) -> 
-      let substitutedLExpr = substitute uniqueVarGenerator env lExpr
+      let substitutedLExpr = substituteInner env lExpr
       let newP = uniqueVarGenerator()
       let env' = (p, Var(newP)) :: remove env p
-      let substitutedLBody = substitute uniqueVarGenerator env' lBody
+      let substitutedLBody = substituteInner env' lBody
       Let(newP, substitutedLExpr, substitutedLBody)
     | LetFun(fName, pName, fBody, lBody) -> 
       let newF = uniqueVarGenerator()
@@ -47,5 +50,7 @@
     | Call(f, arg) -> 
       let substitutedArg = substitute uniqueVarGenerator env arg
       Call(f, substitutedArg)
+    | If(bExpr, tExpr, fExpr) -> 
+      If(substituteInner env bExpr, substituteInner env tExpr, substituteInner env fExpr)
       
 

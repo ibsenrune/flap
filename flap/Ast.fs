@@ -8,3 +8,4 @@
   | LetFun of string * string * Expr * Expr
   | Op of Expr * string * Expr
   | Call of string * Expr
+  | If of Expr * Expr * Expr
