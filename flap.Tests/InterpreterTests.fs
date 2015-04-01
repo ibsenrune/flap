@@ -87,3 +87,22 @@
     Assert.Equal(CstI(3*2), actual)
 
 
+  [<Theory>]
+  [<InlineAutoData(true, 2, 3, 2)>]
+  [<InlineAutoData(false, 2, 3, 3)>]
+  let IfEvaluatedCorrectly b tValue fValue expectedValue =
+    let ifExpr = If(CstB(b), CstI(tValue), CstI(fValue))
+
+    let actual = eval ifExpr []
+
+    Assert.Equal(CstI(expectedValue), actual)
+
+  
+  [<Theory>]
+  [<AutoData>]
+  let EvaluatingIfThrowsIfConditionalExpressionIsNotBoolean i tExpr fExpr =
+    let ifExpr = If(CstI(i), tExpr, fExpr)
+
+    Assert.Throws<System.Exception>(fun () -> eval ifExpr [] |> ignore)
+    
+

@@ -44,3 +44,9 @@
         | "*" -> CstI(lhsi * rhsi)
         | "/" -> CstI(lhsi / rhsi)
       | _ -> failwith (sprintf "Cannot apply operator %s to expressions" op)
+
+    | If(cExpr, tExpr, fExpr) ->
+      let conditionValue = eval cExpr env
+      match conditionValue with
+      | CstB(b) -> if b then eval tExpr env else eval fExpr env
+      | _ -> failwith "Expression in If construct did not evaluate to a boolean value"
