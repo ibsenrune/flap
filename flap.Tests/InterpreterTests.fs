@@ -1,10 +1,10 @@
 ﻿module InterpreterTests
 
-open Xunit.Extensions
-open Ploeh.AutoFixture.Xunit
-open Xunit
-open Ast
-open Interpreter
+  open Xunit.Extensions
+  open Ploeh.AutoFixture.Xunit
+  open Xunit
+  open Ast
+  open Interpreter
 
 
   [<Theory>]
