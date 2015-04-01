@@ -5,9 +5,15 @@
   open Xunit.Extensions
   open Ploeh.AutoFixture.Xunit
 
+  let uniqueVariables = ["unique1"; "unique2"; "unique3"; "unique4"]
+  let uniqueGenerator () = 
+    let enumerator = (List.toSeq uniqueVariables).GetEnumerator()
+    fun () -> enumerator.MoveNext() |> ignore; enumerator.Current
+
   [<Theory>]
   [<AutoData>]
   let SubstitutingIntoConstDoesNothing (p : string) (expr : Expr) i =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
     let cst = CstI(i)
     let env = [(p,expr)]
 
@@ -19,6 +25,7 @@
   [<AutoData>]
   let SubstitutingIntoVarWhenItIsNotSubstitutionVarDoesNothing 
         (p : string) (var : string) (expr : Expr) =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
     let varExpr = Var(var)
     let env = [(p,expr)]
 
@@ -31,6 +38,7 @@
   [<AutoData>]
   let SubstitutingIntoVarWhenItIsSubstitutionVarResultsInSubstitedExpression
         (p : string) (expr : Expr) =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
     let varExpr = Var(p)
     let env = [(p,expr)]
 
@@ -42,80 +50,87 @@
   [<AutoData>]
   let SubstitutingIntoLetDoesNothingWhenSubstituteVariableIsBoundByTheLet 
         (p : string) (subExpr : Expr) (letExpr : Expr) (letBody : Expr) =
-    let letExpr = Let(p, letExpr, letBody)
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
+    let expr = Let(p, letExpr, letBody)
     let env = [(p, subExpr)]
 
-    let actual = substitute env letExpr
+    let actual = substitute env expr
 
-    Assert.Equal(letExpr, actual)
+    Assert.Equal(Let("unique1", letExpr, letBody), actual)
 
   [<Theory>]
   [<AutoData>]
   let SubstitutingIntoLetSubstituesIntoLetExprWhenSubstitutionVarIsBoundVariable
         (p : string) (subExpr : Expr) (letBody : Expr) =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
     let letExpr = Let(p, Var(p), letBody)
     let env = [(p, subExpr)]
 
     let actual = substitute env letExpr
 
-    Assert.Equal(Let(p, subExpr, letBody), actual)
+    Assert.Equal(Let("unique1", subExpr, letBody), actual)
 
   [<Theory>]
   [<AutoData>]
   let SubstituteIntoLetFunSubstitutesIntoFunctionBody
     (f : string) (p : string) (fBodyVar : string) (subExpr : Expr) (letBody : Expr) =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
     let letFun = LetFun(f, p, Var(fBodyVar), letBody)
     let substitutionEnv = [(fBodyVar, subExpr)]
 
     let actual = substitute substitutionEnv letFun
 
     Assert.NotEqual(p, fBodyVar)
-    Assert.Equal(LetFun(f, p, subExpr, letBody), actual)
+    Assert.Equal(LetFun("unique1", "unique2", subExpr, letBody), actual)
 
   
   [<Theory>]
   [<AutoData>]
-  let SubstituteIntoLetFunDoesNotSubstitutesIntoFunctionBodyWhenParameterIsInSubstitutionEnv
+  let SubstituteIntoLetFunDoesNotSubstituteIntoFunctionBodyWhenParameterIsInSubstitutionEnv
     (fName : string) (pName : string) (fBodyVar : string) (subExpr : Expr) (letBody : Expr) =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
     let letFun = LetFun(fName, pName, Var(pName), letBody)
     let substitutionEnv = [(pName, subExpr)]
 
     let actual = substitute substitutionEnv letFun
 
-    Assert.Equal(letFun, actual)
+    Assert.Equal(LetFun("unique1", "unique2", Var("unique2"), letBody), actual)
 
   [<Theory>]
   [<AutoData>]
   let SubstituteIntoLetFunSubstitutesIntoLetBodyWhenParameterIsInSubstitutionEnv
     (fName : string) (pName : string) (fBody : Expr) (subExpr : Expr) (lBodyVar : string) =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
     let letFun = LetFun(fName, pName, fBody, Var(lBodyVar))
     let substitutionEnv = [(lBodyVar, subExpr)]
 
     let actual = substitute substitutionEnv letFun
 
-    Assert.Equal(LetFun(fName, pName, fBody, subExpr), actual)
+    Assert.Equal(LetFun("unique1", "unique2", fBody, subExpr), actual)
 
   [<Theory>]
   [<AutoData>]
   let SubstituteIntoLetFunDoesNotSubstituteIntoLetBodyWhenFunctionIsInSubstitutionEnv
     (fName : string) (pName : string) (fBody : Expr) (subExpr : Expr) =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
     let letFun = LetFun(fName, pName, fBody, Var(fName))
     let substitutionEnv = [(fName, subExpr)]
 
     let actual = substitute substitutionEnv letFun
 
-    Assert.Equal(letFun, actual)
+    Assert.Equal(LetFun("unique1", "unique2", fBody, Var("unique1")), actual)
 
   [<Theory>]
   [<AutoData>]
   let SubstituteIntoLetFunSubstitutesIntoLetBodyWhenFunctionParameterIsInSubstitutionEnv
     (fName : string) (pName : string) (fBody : Expr) (subExpr : Expr) =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
     let letFun = LetFun(fName, pName, fBody, Var(pName))
     let substitutionEnv = [(pName, subExpr)]
 
     let actual = substitute substitutionEnv letFun
 
-    Assert.Equal(LetFun(fName, pName, fBody, subExpr), actual)
+    Assert.Equal(LetFun("unique1", "unique2", fBody, subExpr), actual)
 
   [<Theory>]
   [<InlineAutoData("+")>]
@@ -123,6 +138,7 @@
   [<InlineAutoData("*")>]
   [<InlineAutoData("/")>]
   let SubstituteIntoOpSubstitutesIntoOperands op substitutionVar subExpr =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
     let expr = Op(Var(substitutionVar), op, Var(substitutionVar))
     let env = (substitutionVar, subExpr)::[]
 
@@ -134,6 +150,7 @@
   [<AutoData>]
   let SubstituteIntoCallSubstitutesIntoArgumentExpression 
     (fName : string) (argVar : string) (subExpr : Expr) =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
     let call = Call(fName, Var(argVar))
     let env = (argVar, subExpr)::[]
 
@@ -227,6 +244,7 @@
 
     Assert.Equal(var1::var2::[], actual)
 
+
   [<Theory>]
   [<AutoData>]
   let InLetFunFreeVariablesInLetBodyAreFreeEvenWhenBoundByLetFun f var i1 =
@@ -281,60 +299,3 @@
     let actual = freeVariables letExpr
 
     Assert.Equal(var1::var2::[], actual)
-
-
-  [<Theory>]
-  [<AutoData>]
-  let VarIsNotFreeInConst var i =
-    let cst = CstI(i)
-    
-    let isFree = freeIn var cst
-
-    Assert.False(isFree)
-
-  [<Theory>]
-  [<AutoData>]
-  let VarIsNotFreeInVarOfOtherName var otherVar = 
-    let varExpr = Var(otherVar)
-
-    let isFree = freeIn var varExpr
-
-    Assert.NotEqual(var, otherVar);
-    Assert.False(isFree)
-
-  [<Theory>]
-  [<AutoData>]
-  let VarIsFreeInVarOfSameName var =
-    let varExpr = Var(var)
-
-    let isFree = freeIn var varExpr
-
-    Assert.True(isFree)
-
-
-  [<Theory>]
-  [<AutoData>]
-  let VarIsFreeInLetIfNotBoundByParameterAndFreeInParameterExpression var p letBody =
-    let letExpr = Let(p, Var(var), letBody)
-
-    let isFree = freeIn var letExpr
-
-    Assert.True(isFree)
-
-  [<Theory>]
-  [<AutoData>]
-  let VarIsFreeInLetIfNotBoundByParameterAndFreeInLetBody var p subExpr =
-    let letExpr = Let(p, subExpr, Var(var))
-
-    let isFree = freeIn var letExpr
-
-    Assert.True(isFree)
-
-//  [<Theory>]
-//  [<AutoData>]
-//  let VarIsFreeInLetIfEqualToParameterButFreeInParameterExpression var letBody =
-//    let letExpr = Let(var, Var(var), letBody)
-//
-//    let isFree = freeIn var letExpr
-//
-//    Assert.True(isFree)

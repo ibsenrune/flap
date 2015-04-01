@@ -19,33 +19,31 @@
     | Call(f, arg) -> freeVariables arg
         
         
-
-  let rec freeIn (symbol : string) exprIn =
-    match exprIn with
-    | CstI(_) -> false
-    | Var(v) -> symbol = v
-    | Let(p, lExpr, lBody) -> 
-        if(symbol = p) then false else freeIn symbol lExpr or freeIn symbol lBody
+  let rec private freeIn (symbol : string) exprIn =
+    (List.exists (fun x -> x = symbol)) (freeVariables exprIn)
     
 
-  let rec substitute (env : Expr environment) exprIn = 
+  let rec substitute (uniqueVarGenerator : unit -> string) (env : Expr environment) exprIn = 
     match exprIn with
     | CstI(_) -> exprIn
     | Var(v) -> lookupOrSelf env v
     | Let(p, lExpr, lBody) -> 
-      let substitutedLExpr = substitute env lExpr
-      let env' = remove env p
-      let substitutedLBody = substitute env' lBody
-      Let(p, substitutedLExpr, substitutedLBody)
+      let substitutedLExpr = substitute uniqueVarGenerator env lExpr
+      let newP = uniqueVarGenerator()
+      let env' = (p, Var(newP)) :: remove env p
+      let substitutedLBody = substitute uniqueVarGenerator env' lBody
+      Let(newP, substitutedLExpr, substitutedLBody)
     | LetFun(fName, pName, fBody, lBody) -> 
-      let lBodyEnv = remove env fName
-      let fBodyEnv = remove lBodyEnv pName
-      let substitutedFBody = substitute fBodyEnv fBody
-      let substitutedLBody = substitute lBodyEnv lBody
-      LetFun(fName, pName, substitutedFBody, substitutedLBody)
-    | Op(e1, op, e2) -> Op(substitute env e1, op, substitute env e2)
+      let newF = uniqueVarGenerator()
+      let newP = uniqueVarGenerator()
+      let fBodyEnv = (pName, Var(newP)) :: (fName, Var(newF)) :: remove (remove env pName) fName
+      let lBodyEnv = (fName, Var(newF)) :: remove env fName      
+      let substitutedFBody = substitute uniqueVarGenerator fBodyEnv fBody
+      let substitutedLBody = substitute uniqueVarGenerator lBodyEnv lBody
+      LetFun(newF, newP, substitutedFBody, substitutedLBody)
+    | Op(e1, op, e2) -> Op(substitute uniqueVarGenerator env e1, op, substitute uniqueVarGenerator env e2)
     | Call(f, arg) -> 
-      let substitutedArg = substitute env arg
+      let substitutedArg = substitute uniqueVarGenerator env arg
       Call(f, substitutedArg)
       
 
