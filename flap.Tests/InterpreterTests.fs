@@ -190,4 +190,26 @@
     Assert.Throws<System.Exception>(fun () -> eval ifExpr [] |> ignore)
 
 
+  [<Theory>]
+  [<AutoData>]
+  let CanCalculateFibonacci p =
+    let fibBody = 
+      If(
+        Op(Var(p), "=", CstI(1)), 
+        CstI(0), 
+        If(
+          Op(Var(p), "=", CstI(2)),
+          CstI(1),
+          Op(
+            Call("fib", Op(Var(p), "-", CstI(1))),
+            "+", 
+            Call("fib", Op(Var(p), "-", CstI(2))))))
+    let letFib = LetFun("fib", p, fibBody, Call("fib", CstI(5)))
+
+    let actual = eval letFib []
+
+    Assert.Equal(CstI(3), actual)
+          
+
+
 

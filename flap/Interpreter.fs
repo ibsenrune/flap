@@ -27,12 +27,14 @@
       eval iBody env'
 
     | Call(id, arg) -> 
-      let (f,p,fBody,fEnv) = 
-        match lookup id with
-        | Closure(f,p,fBody,fEnv) -> (f,p,fBody,fEnv)
-        | _ -> failwith "Cannot call non-func value"
-      let argValue = eval arg env
-      eval fBody ((p,ExprValue(argValue, []))::fEnv)
+      let fClosure = lookup id
+      match fClosure with
+      | Closure(f,p,fBody,fEnv) -> 
+        let argValue = eval arg env
+        let fBodyEnv = (f, fClosure)::fEnv
+        eval fBody ((p,ExprValue(argValue, []))::fBodyEnv)
+      | _ -> failwith "Cannot call non-func value"
+      
 
     | Op(lhs, op, rhs) -> 
       let lhsv,rhsv = eval lhs env, eval rhs env
