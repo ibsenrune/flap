@@ -7,3 +7,4 @@
 * Support strings data type
 * Simple parser
 * Type inference
+* Tagged unions and pattern matching
