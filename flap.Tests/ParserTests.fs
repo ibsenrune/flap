@@ -39,8 +39,23 @@
   [<InlineData("\"\\r\\n\"", "\r\n")>]
   [<InlineData("\"abc\"", "abc")>]
   [<InlineData("\" abc \"", " abc ")>]
+  [<InlineData("\" a\\nbc \"", " a\nbc ")>]
   let parsesStringLiterals literal expected =
 
     let actual = parse literal
 
     Assert.Equal(StringC(expected), actual)
+
+
+  [<Theory>]
+  [<InlineData("myVar")>]
+  [<InlineData("_myVar")>]
+  [<InlineData("_myVar3")>]
+  [<InlineData("_myVar_3")>]
+  [<InlineData("var_3")>]
+  let parsesVar identifier = 
+    let actual = parse identifier
+
+    Assert.Equal(Var(identifier), actual)
+
+  
