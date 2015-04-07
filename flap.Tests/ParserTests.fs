@@ -13,3 +13,19 @@
     let actual = parse str
 
     Assert.Equal(CstI(i), actual)
+
+  [<Fact>]
+  let parsesTrueBoolean () =
+    let str = "True"
+
+    let actual = parse str
+
+    Assert.Equal(CstB(true), actual)
+
+  [<Fact>]
+  let parsesFalseBoolean () =
+    let str = "False"
+
+    let actual = parse str
+
+    Assert.Equal(CstB(false), actual)
