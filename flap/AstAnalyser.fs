@@ -6,6 +6,7 @@
     match expr with
     | CstI(_) -> []
     | CstB(_) -> []
+    | StringC(_) -> []
     | Var(id) -> id::[]
     | Let(p, lExpr, lBody) ->
         let freeVariablesInLExpr = freeVariables lExpr
@@ -31,6 +32,7 @@
     match exprIn with
     | CstI(_) -> exprIn
     | CstB(_) -> exprIn
+    | StringC(_) -> exprIn
     | Var(v) -> lookupOrSelf env v
     | Let(p, lExpr, lBody) -> 
       let substitutedLExpr = substituteInner env lExpr

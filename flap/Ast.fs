@@ -3,6 +3,7 @@
   type Expr = 
   | CstI of int
   | CstB of bool
+  | StringC of string
   | Var of string
   | Let of string * Expr * Expr
   | LetFun of string * string * Expr * Expr

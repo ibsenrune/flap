@@ -11,7 +11,7 @@
     match e with
     | CstI(i) -> e
     | CstB(b) -> e
-
+    | StringC(s) -> e
     | Var(s) -> 
         match lookup s with
         | ExprValue(expr, env) -> eval expr env
@@ -51,6 +51,10 @@
         match op with
         | "=" -> CstB(b1 = b2)
         | _ -> failwith (sprintf "Cannot apply operator %s to operands of type bool" op)
+      | StringC(s1), StringC(s2) -> 
+        match op with
+        | "+" -> StringC(s1 + s2)
+        | "=" -> CstB(s1 = s2)
       | _ -> failwith (sprintf "Cannot apply operator %s to expressions" op)
 
     | If(cExpr, tExpr, fExpr) ->

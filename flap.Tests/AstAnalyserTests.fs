@@ -23,6 +23,17 @@
 
   [<Theory>]
   [<AutoData>]
+  let SubstitutingIntoStringConstDoesNothing (p : string) (expr : Expr) s =
+    let substitute = AstAnalyser.substitute (uniqueGenerator())
+    let cst = StringC(s)
+    let env = [(p,expr)]
+
+    let actual = substitute env cst
+
+    Assert.Equal(cst, actual)
+
+  [<Theory>]
+  [<AutoData>]
   let SubstitutingIntoBooleanConstDoesNothing (p : string) (expr : Expr) b =
     let substitute = AstAnalyser.substitute (uniqueGenerator())
     let cst = CstB(b)
@@ -194,6 +205,15 @@
   [<AutoData>]
   let InBooleanConstNothingIsFree b =
     let expr = CstB(b)
+
+    let actual = freeVariables expr
+
+    Assert.Equal([], actual)
+
+  [<Theory>]
+  [<AutoData>]
+  let InStringConstNothingIsFree s =
+    let expr = StringC(s)
 
     let actual = freeVariables expr
 
