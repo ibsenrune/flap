@@ -4,7 +4,7 @@
 
 ### To do ###
 
-* Support strings data type
+* ~~Support strings data type~~
 * Simple parser
 * Type inference
 * Tagged unions and pattern matching
