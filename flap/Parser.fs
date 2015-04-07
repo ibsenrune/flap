@@ -12,9 +12,24 @@
     let boolean = (stringReturn "True"  (CstB(true)))
               <|> (stringReturn "False" (CstB(false)))
 
+    let stringLiteral = 
+      let normalCharSnippet = manySatisfy (fun c -> c <> '\\' && c <> '"')
+      let unescape c = 
+        match c with
+        | 'n' -> "\n"
+        | 'r' -> "\r"
+        | 't' -> "\t"
+        | c   -> string c
+      let escapedChar = pstring "\\" >>. (anyOf "\\nrt\"" |>> unescape)
+      let str = 
+        between (pstring "\"") (pstring "\"")
+              (stringsSepBy normalCharSnippet escapedChar)
+      str |>> fun s -> StringC(s)
+
     let expr =
       integer <|>
-      boolean
+      boolean <|>
+      stringLiteral
 
     let result = runParserOnString expr null "input" s
 

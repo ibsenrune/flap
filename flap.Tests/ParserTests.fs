@@ -29,3 +29,18 @@
     let actual = parse str
 
     Assert.Equal(CstB(false), actual)
+
+  [<Theory>]
+  [<InlineData("\"\"", "")>]
+  [<InlineData("\" \"", " ")>]
+  [<InlineData("\"\t\"", "\t")>]
+  [<InlineData("\"\n\"", "\n")>]
+  [<InlineData("\"\t\n\"", "\t\n")>]
+  [<InlineData("\"\\r\\n\"", "\r\n")>]
+  [<InlineData("\"abc\"", "abc")>]
+  [<InlineData("\" abc \"", " abc ")>]
+  let parsesStringLiterals literal expected =
+
+    let actual = parse literal
+
+    Assert.Equal(StringC(expected), actual)
