@@ -58,4 +58,45 @@
 
     Assert.Equal(Var(identifier), actual)
 
+  [<Theory>]
+  [<InlineData("3+4", 3, "+", 4)>]
+  [<InlineData("0+0", 0, "+", 0)>]
+  [<InlineData("0+1", 0, "+", 1)>]
+  [<InlineData("1+1", 1, "+", 1)>]
+  [<InlineData("3/4", 3, "/", 4)>]
+  [<InlineData("0/0", 0, "/", 0)>]
+  [<InlineData("0/1", 0, "/", 1)>]
+  [<InlineData("1/1", 1, "/", 1)>]
+  [<InlineData("3*4", 3, "*", 4)>]
+  [<InlineData("0*0", 0, "*", 0)>]
+  [<InlineData("0*1", 0, "*", 1)>]
+  [<InlineData("1*1", 1, "*", 1)>]
+  [<InlineData("3-4", 3, "-", 4)>]
+  [<InlineData("0-0", 0, "-", 0)>]
+  [<InlineData("0-1", 0, "-", 1)>]
+  [<InlineData("1-1", 1, "-", 1)>]
+  let parsesBinaryOperation str lhs op rhs= 
+    let actual = parse str
+
+    Assert.Equal(Op(CstI(lhs), op, CstI(rhs)), actual)
+
+  [<Theory>]
+  [<InlineAutoData("+")>]
+  [<InlineAutoData("-")>]
+  [<InlineAutoData("*")>]
+  [<InlineAutoData("/")>]
+  let operatorIsLeftAssociative op (x:System.Int32) (y:System.Int32) (z:System.Int32) = 
+    let actual = parse (System.String.Format("{1}{0}{2}{0}{3}", op, x, y, z))
+
+    Assert.Equal(Op(Op(CstI(x), op, CstI(y)), op, CstI(z)), actual)
+
+  
+  [<Theory>]
+  [<AutoData>]
+  let multiplicationHasHigherPrecedenceThanAddition 
+    (x:System.Int32) (y:System.Int32) (z:System.Int32) = 
+    let actual = parse (System.String.Format("{0}+{1}*{2}", x, y, z))
+
+    Assert.Equal(Op(CstI(x), "+", Op(CstI(y), "*", CstI(z))), actual)
+
   

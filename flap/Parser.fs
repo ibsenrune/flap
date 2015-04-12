@@ -1,11 +1,17 @@
 ﻿module Parser
   open Ast
   open FParsec
+  open FParsec.Primitives
 
   type private ExprParser = Parser<Expr,unit>
 
   let parse s =
     
+    let (expression : Parser<Expr,_>, expressionRef : Parser<Expr,_> ref) = createParserForwardedToRef() //http://hestia.typepad.com/flatlander/2011/07/recursive-parsers-in-fparsec.html
+
+    // white space or comment
+    let ws = (many spaces1 |>> ignore) <?> "whitespace"
+
     //Parses an integer
     let integer = (numberLiteral NumberLiteralOptions.DefaultInteger "integer") |>> fun number -> CstI(int number.String)
 
@@ -37,13 +43,43 @@
 
     let var = identifier |>> Var
 
-    let expr : ExprParser =
+    let parenExpr = pstring "(" >>. expression .>> pstring ")"
+
+    let aExpr = 
       integer <|>
       boolean <|>
       stringLiteral <|>
-      var
+      var <|>
+      parenExpr
 
-    let result = runParserOnString expr () "input" s
+    // The operator parser from FParsec takes care of precedence issues
+    let opp = new OperatorPrecedenceParser<_,_,_>()
+
+    let precedence = [
+      ["*"; "/"], Associativity.Left
+      ["+"; "-"], Associativity.Left
+    ]
+
+    let makeOperator =
+      // we start with operators with highest priority, then we decrement the counter.
+      let precCounter = ref 20 //(we have at most 20 different priorities)
+      let addInfix li =
+        for ops, assoc in li do
+          decr precCounter
+          for op in ops do
+            opp.AddOperator(InfixOperator(op, ws, !precCounter, assoc, fun x y -> Op(x, op, y)))
+      opp.TermParser <- aExpr
+      addInfix precedence
+
+    let exprParser : ExprParser =
+      (attempt opp.ExpressionParser) <|>
+      aExpr
+      
+    
+
+    do expressionRef := exprParser //http://hestia.typepad.com/flatlander/2011/07/recursive-parsers-in-fparsec.html
+
+    let result = runParserOnString exprParser () "input" s
 
     match result with
     | ParserResult.Success(expr, ustate, position) -> expr
