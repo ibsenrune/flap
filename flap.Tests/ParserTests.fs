@@ -1,4 +1,5 @@
 ﻿module ParserTests
+  open System
   open Ast
   open Parser
   open Xunit
@@ -85,8 +86,8 @@
   [<InlineAutoData("-")>]
   [<InlineAutoData("*")>]
   [<InlineAutoData("/")>]
-  let operatorIsLeftAssociative op (x:System.Int32) (y:System.Int32) (z:System.Int32) = 
-    let actual = parse (System.String.Format("{1}{0}{2}{0}{3}", op, x, y, z))
+  let operatorIsLeftAssociative op (x:Int32) (y:Int32) (z:Int32) = 
+    let actual = parse (String.Format("{1}{0}{2}{0}{3}", op, x, y, z))
 
     Assert.Equal(Op(Op(CstI(x), op, CstI(y)), op, CstI(z)), actual)
 
@@ -94,8 +95,8 @@
   [<Theory>]
   [<AutoData>]
   let multiplicationHasHigherPrecedenceThanAddition 
-    (x:System.Int32) (y:System.Int32) (z:System.Int32) = 
-    let actual = parse (System.String.Format("{0}+{1}*{2}", x, y, z))
+    (x:Int32) (y:Int32) (z:Int32) = 
+    let actual = parse (String.Format("{0}+{1}*{2}", x, y, z))
 
     Assert.Equal(Op(CstI(x), "+", Op(CstI(y), "*", CstI(z))), actual)
 

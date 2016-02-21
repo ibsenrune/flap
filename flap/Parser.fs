@@ -43,6 +43,13 @@
 
     let var = identifier |>> Var
 
+    let letInEnd = 
+      let letParser = pstring "let" >>. ws >>. identifier .>> ws .>> pstring "=" .>> ws
+      let inParser = ws >>. pstring "in" .>> ws
+      let endParser = ws >>. pstring "end"
+      pipe5 letParser expression inParser expression endParser 
+        (fun p letExpr _ letBody _ -> Let(p, letExpr, letBody))
+
     let parenExpr = pstring "(" >>. expression .>> pstring ")"
 
     let aExpr = 
@@ -55,12 +62,11 @@
     // The operator parser from FParsec takes care of precedence issues
     let opp = new OperatorPrecedenceParser<_,_,_>()
 
-    let precedence = [
-      ["*"; "/"], Associativity.Left
-      ["+"; "-"], Associativity.Left
-    ]
-
-    let makeOperator =
+    let makeOperators =
+      let precedence = [
+        ["*"; "/"], Associativity.Left
+        ["+"; "-"], Associativity.Left
+      ]
       // we start with operators with highest priority, then we decrement the counter.
       let precCounter = ref 20 //(we have at most 20 different priorities)
       let addInfix li =
@@ -73,6 +79,7 @@
 
     let exprParser : ExprParser =
       (attempt opp.ExpressionParser) <|>
+      (attempt letInEnd) <|>
       aExpr
       
     
