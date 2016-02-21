@@ -5,31 +5,37 @@
   open Xunit
   open Xunit.Extensions
   open Ploeh.AutoFixture.Xunit
+  open FParsec
+
+  let parse = Parser.parse
+  let runParser parser str = 
+    runParserOnString parser () "Test input" str
+
+  let isSuccess = function 
+    | ParserResult.Success(e, _, _) -> true 
+    | ParserResult.Failure(s, _, _) -> false
+
+  let isExpression expected parseResult =
+    match parseResult with
+    | ParserResult.Success(actual, _, _) -> Assert.Equal(expected, actual)
+    | ParserResult.Failure(str, _, _) as failure -> raise (Xunit.Sdk.AssertException ("Parse failure: " + str))
 
   [<Theory>]
   [<AutoData>]
-  let parsesInteger (i : int) =
-    let str = i.ToString()
+  let ``integer parses integer`` (i : int) =
+    let actual = runParser integer (i.ToString())
 
-    let actual = parse str
+    actual |> isExpression (CstI(i))
 
-    Assert.Equal(CstI(i), actual)
 
-  [<Fact>]
-  let parsesTrueBoolean () =
-    let str = "True"
+  [<Theory>]
+  [<InlineData("True", true)>]
+  [<InlineData("False", false)>]
+  let ``boolean parses True and False correctly`` input expected =
+    let actual = runParser boolean input
 
-    let actual = parse str
+    actual |> isExpression (CstB(expected))
 
-    Assert.Equal(CstB(true), actual)
-
-  [<Fact>]
-  let parsesFalseBoolean () =
-    let str = "False"
-
-    let actual = parse str
-
-    Assert.Equal(CstB(false), actual)
 
   [<Theory>]
   [<InlineData("\"\"", "")>]
@@ -43,9 +49,9 @@
   [<InlineData("\" a\\nbc \"", " a\nbc ")>]
   let parsesStringLiterals literal expected =
 
-    let actual = parse literal
+    let actual = runParser stringLiteral literal
 
-    Assert.Equal(StringC(expected), actual)
+    actual |> isExpression (StringC(expected))
 
 
   [<Theory>]
@@ -54,10 +60,11 @@
   [<InlineData("_myVar3")>]
   [<InlineData("_myVar_3")>]
   [<InlineData("var_3")>]
-  let parsesVar identifier = 
-    let actual = parse identifier
+  let ``identifier parses identifier correctly`` input = 
+    let actual = runParser Parser.identifier input
 
-    Assert.Equal(Var(identifier), actual)
+    actual |> isExpression input
+
 
   [<Theory>]
   [<InlineData("3+4", 3, "+", 4)>]
@@ -100,4 +107,14 @@
 
     Assert.Equal(Op(CstI(x), "+", Op(CstI(y), "*", CstI(z))), actual)
 
+  [<Fact>]
+  let ``ws0 accepts empty string`` () =
+    let actual = runParser ws0 ""
+
+    Assert.True(actual |> isSuccess)
   
+  [<Fact>]
+  let ``identifier parses identifier starting with _`` () =
+    let actual = runParser Parser.identifier "_identifier"
+
+    actual |> isExpression "_identifier"

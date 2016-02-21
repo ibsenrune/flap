@@ -5,50 +5,52 @@
 
   type private ExprParser = Parser<Expr,unit>
 
-  let parse s =
-    
-    let (expression : Parser<Expr,_>, expressionRef : Parser<Expr,_> ref) = createParserForwardedToRef() //http://hestia.typepad.com/flatlander/2011/07/recursive-parsers-in-fparsec.html
+  let (expression : Parser<Expr,_>, expressionRef : Parser<Expr,_> ref) = createParserForwardedToRef() //http://hestia.typepad.com/flatlander/2011/07/recursive-parsers-in-fparsec.html
 
-    // white space or comment
-    let ws = (many spaces1 |>> ignore) <?> "whitespace"
+  // Parse white space
+  let ws0 = spaces
+  let ws = (many spaces1 |>> ignore) <?> "whitespace"
+  
+  //Parse an integer
+  let integer = (numberLiteral NumberLiteralOptions.DefaultInteger "integer") |>> fun number -> CstI(int number.String)
+  
+  //Parse a boolean value
+  let boolean = (stringReturn "True"  (CstB(true)))
+            <|> (stringReturn "False" (CstB(false)))
 
-    //Parses an integer
-    let integer = (numberLiteral NumberLiteralOptions.DefaultInteger "integer") |>> fun number -> CstI(int number.String)
+  //Parse an identifier
+  let identifier : Parser<string, unit> = 
+    let isIdentifierFirstChar c = isLetter c || c = '_'
+    let isIdentifierChar c = isLetter c || isDigit c || c = '_'
+    (many1Satisfy2L isIdentifierFirstChar isIdentifierChar "identifier")
 
-    //Parses a boolean value, i.e. "True" or "False"
-    let boolean = (stringReturn "True"  (CstB(true)))
-              <|> (stringReturn "False" (CstB(false)))
-    
-    //Parses a string literal, possibly containing escaped characters
-    let stringLiteral = 
-      //parses consecutive non-escaped characters
-      let normalCharSnippet = manySatisfy (fun c -> c <> '\\' && c <> '"')
-      let unescape c = 
-        match c with
-        | 'n' -> "\n"
-        | 'r' -> "\r"
-        | 't' -> "\t"
-        | c   -> string c
-      let escapedChar = pstring "\\" >>. (anyOf "\\nrt\"" |>> unescape)
-      let str = 
-        between (pstring "\"") (pstring "\"")
-              (stringsSepBy normalCharSnippet escapedChar)
-      str |>> StringC
+  //Parse a string literal, possibly containing escaped characters
+  let stringLiteral = 
+    //parses consecutive non-escaped characters
+    let normalCharSnippet = manySatisfy (fun c -> c <> '\\' && c <> '"')
+    let unescape c = 
+      match c with
+      | 'n' -> "\n"
+      | 'r' -> "\r"
+      | 't' -> "\t"
+      | c   -> string c
+    let escapedChar = pstring "\\" >>. (anyOf "\\nrt\"" |>> unescape)
+    let str = 
+      between (pstring "\"") (pstring "\"")
+            (stringsSepBy normalCharSnippet escapedChar)
+    str |>> StringC
 
-    ///Parses an identifier
-    let identifier : Parser<string, unit> = 
-      let isIdentifierFirstChar c = isLetter c || c = '_'
-      let isIdentifierChar c = isLetter c || isDigit c || c = '_'
-      (many1Satisfy2L isIdentifierFirstChar isIdentifierChar "identifier")
-
-    let var = identifier |>> Var
-
-    let letInEnd = 
+  let letInEnd = 
       let letParser = pstring "let" >>. ws >>. identifier .>> ws .>> pstring "=" .>> ws
       let inParser = ws >>. pstring "in" .>> ws
       let endParser = ws >>. pstring "end"
       pipe5 letParser expression inParser expression endParser 
         (fun p letExpr _ letBody _ -> Let(p, letExpr, letBody))
+
+  let parse s =
+
+    ///Parses an identifier
+    let var = identifier |>> Var
 
     let parenExpr = pstring "(" >>. expression .>> pstring ")"
 
@@ -78,11 +80,10 @@
       addInfix precedence
 
     let exprParser : ExprParser =
-      (attempt opp.ExpressionParser) <|>
       (attempt letInEnd) <|>
+      (attempt opp.ExpressionParser) <|>
       aExpr
       
-    
 
     do expressionRef := exprParser //http://hestia.typepad.com/flatlander/2011/07/recursive-parsers-in-fparsec.html
 
