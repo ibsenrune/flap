@@ -1,11 +1,8 @@
 # Introduction #
+flap is a functional programming language running on .NET. 
 
-# Road map #
+flap is currently in its infancy: it is incomplete, contains bugs and is only interpreted.
 
-### To do ###
+## Status ##
 
-* ~~Support strings data type~~
-* Simple parser
-* Support multi-argument functions
-* Type inference
-* Tagged unions and pattern matching
+[![Build status](https://ci.appveyor.com/api/projects/status/kv2nicwy48oo1wu2/branch/master?svg=true)](https://ci.appveyor.com/project/runeibsen/flap/branch/master)
