@@ -22,28 +22,20 @@
 
   [<Theory>]
   [<AutoData>]
-  let parsesInteger (i : int) =
-    let str = i.ToString()
+  let ``integer parses integer`` (i : int) =
+    let actual = runParser integer (i.ToString())
 
-    let actual = parse str
+    actual |> isExpression (CstI(i))
 
-    Assert.Equal(CstI(i), actual)
 
-  [<Fact>]
-  let parsesTrueBoolean () =
-    let str = "True"
+  [<Theory>]
+  [<InlineData("True", true)>]
+  [<InlineData("False", false)>]
+  let ``boolean parses True and False correctly`` input expected =
+    let actual = runParser boolean input
 
-    let actual = parse str
+    actual |> isExpression (CstB(expected))
 
-    Assert.Equal(CstB(true), actual)
-
-  [<Fact>]
-  let parsesFalseBoolean () =
-    let str = "False"
-
-    let actual = parse str
-
-    Assert.Equal(CstB(false), actual)
 
   [<Theory>]
   [<InlineData("\"\"", "")>]
@@ -57,9 +49,9 @@
   [<InlineData("\" a\\nbc \"", " a\nbc ")>]
   let parsesStringLiterals literal expected =
 
-    let actual = parse literal
+    let actual = runParser stringLiteral literal
 
-    Assert.Equal(StringC(expected), actual)
+    actual |> isExpression (StringC(expected))
 
 
   [<Theory>]
@@ -68,10 +60,11 @@
   [<InlineData("_myVar3")>]
   [<InlineData("_myVar_3")>]
   [<InlineData("var_3")>]
-  let parsesVar identifier = 
-    let actual = parse identifier
+  let ``identifier parses identifier correctly`` input = 
+    let actual = runParser Parser.identifier input
 
-    Assert.Equal(Var(identifier), actual)
+    actual |> isExpression input
+
 
   [<Theory>]
   [<InlineData("3+4", 3, "+", 4)>]
