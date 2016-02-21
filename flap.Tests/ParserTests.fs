@@ -5,6 +5,20 @@
   open Xunit
   open Xunit.Extensions
   open Ploeh.AutoFixture.Xunit
+  open FParsec
+
+  let parse = Parser.parse
+  let runParser parser str = 
+    runParserOnString parser () "Test input" str
+
+  let isSuccess = function 
+    | ParserResult.Success(e, _, _) -> true 
+    | ParserResult.Failure(s, _, _) -> false
+
+  let isExpression expected parseResult =
+    match parseResult with
+    | ParserResult.Success(actual, _, _) -> Assert.Equal(expected, actual)
+    | ParserResult.Failure(str, _, _) as failure -> raise (Xunit.Sdk.AssertException ("Parse failure: " + str))
 
   [<Theory>]
   [<AutoData>]
@@ -100,4 +114,14 @@
 
     Assert.Equal(Op(CstI(x), "+", Op(CstI(y), "*", CstI(z))), actual)
 
+  [<Fact>]
+  let ``ws0 accepts empty string`` () =
+    let actual = runParser ws0 ""
+
+    Assert.True(actual |> isSuccess)
   
+  [<Fact>]
+  let ``identifier parses identifier starting with _`` () =
+    let actual = runParser Parser.identifier "_identifier"
+
+    actual |> isExpression "_identifier"

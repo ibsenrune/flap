@@ -5,13 +5,25 @@
 
   type private ExprParser = Parser<Expr,unit>
 
+  let (expression : Parser<Expr,_>, expressionRef : Parser<Expr,_> ref) = createParserForwardedToRef() //http://hestia.typepad.com/flatlander/2011/07/recursive-parsers-in-fparsec.html
+
+  // white space or comment
+  let ws0 = spaces
+  let ws = (many spaces1 |>> ignore) <?> "whitespace"
+
+  let identifier : Parser<string, unit> = 
+    let isIdentifierFirstChar c = isLetter c || c = '_'
+    let isIdentifierChar c = isLetter c || isDigit c || c = '_'
+    (many1Satisfy2L isIdentifierFirstChar isIdentifierChar "identifier")
+
+  let letInEnd = 
+      let letParser = pstring "let" >>. ws >>. identifier .>> ws .>> pstring "=" .>> ws
+      let inParser = ws >>. pstring "in" .>> ws
+      let endParser = ws >>. pstring "end"
+      pipe5 letParser expression inParser expression endParser 
+        (fun p letExpr _ letBody _ -> Let(p, letExpr, letBody))
+
   let parse s =
-    
-    let (expression : Parser<Expr,_>, expressionRef : Parser<Expr,_> ref) = createParserForwardedToRef() //http://hestia.typepad.com/flatlander/2011/07/recursive-parsers-in-fparsec.html
-
-    // white space or comment
-    let ws = (many spaces1 |>> ignore) <?> "whitespace"
-
     //Parses an integer
     let integer = (numberLiteral NumberLiteralOptions.DefaultInteger "integer") |>> fun number -> CstI(int number.String)
 
@@ -36,19 +48,7 @@
       str |>> StringC
 
     ///Parses an identifier
-    let identifier : Parser<string, unit> = 
-      let isIdentifierFirstChar c = isLetter c || c = '_'
-      let isIdentifierChar c = isLetter c || isDigit c || c = '_'
-      (many1Satisfy2L isIdentifierFirstChar isIdentifierChar "identifier")
-
     let var = identifier |>> Var
-
-    let letInEnd = 
-      let letParser = pstring "let" >>. ws >>. identifier .>> ws .>> pstring "=" .>> ws
-      let inParser = ws >>. pstring "in" .>> ws
-      let endParser = ws >>. pstring "end"
-      pipe5 letParser expression inParser expression endParser 
-        (fun p letExpr _ letBody _ -> Let(p, letExpr, letBody))
 
     let parenExpr = pstring "(" >>. expression .>> pstring ")"
 
@@ -78,8 +78,8 @@
       addInfix precedence
 
     let exprParser : ExprParser =
-      (attempt opp.ExpressionParser) <|>
       (attempt letInEnd) <|>
+      (attempt opp.ExpressionParser) <|>
       aExpr
       
     
